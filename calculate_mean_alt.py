@@ -1,5 +1,8 @@
 import math
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import matplotlib.patches as mpatches
 from datetime import date
 
 # Earth constants
@@ -67,8 +70,7 @@ mean_iss_alt = []
 for k in range(len(tles)):
     mean_iss_alt.append((perigees[k] + apogees[k]) / 2)
 
-# print(len(day_of_year) == len(mean_iss_alt))
-""" Collate data of crewed missions to ISS in 2025 include docking and undocking events."""
+""" Collate data of crewed missions to ISS in 2025 include docking and undocking events. doy is calculated by hand from date"""
 crew_events_2025 = [
     # Space X Crew-9
     {
@@ -139,6 +141,7 @@ crew_events_2025 = [
     },
 ]
 
+# Get data from dictionary into format of [dock_doy, undock_doy] pairs for each mission. If no dock or undock event, use 0 (docked in 2024) or 366 (undock planned in 2026) as placeholder. 366 to show nicer on graph. Dictionary format better for adding future events if we wwant to expand.
 missions = {}
 for e in crew_events_2025:
     name = e["spacecraft"]
@@ -146,11 +149,35 @@ for e in crew_events_2025:
         missions[name] = {}
     missions[name][e["event"]] = e["doy"]
 
-# Build [dock_doy, undock_doy] pairs
-# [0, undock] if docked before 2025, [dock, 365] if undocking after 2025
 crewed_missions = [
-    [events.get("arrival", 0), events.get("depart", 365)]
-    for events in missions.values()
+    [events.get("arrive", 0), events.get("depart", 366)] for events in missions.values()
 ]
 
-print(crewed_missions)
+""" Plot mean ISS altitude over 2025 with crewed mission events. Show range of events as shaded region."""
+
+
+def plot(df: pd.DataFrame):
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(
+        df["day_of_year"],
+        df["mean_altitude"],
+        label="Mean ISS Altitude (km)",
+        color="blue",
+    )
+    ax.set_xlabel("Day of Year (2025)")
+    ax.set_ylabel("Mean Altitude (km)")
+    ax.set_title("Mean ISS Altitude in 2025 with Crewed Mission Events")
+    ax.grid()
+
+    # Add shaded regions for crewed missions
+    for arrive, depart in crewed_missions:
+        if arrive < depart:  # Only plot if there's a valid range
+            ax.axvspan(arrive, depart, color="orange", alpha=0.3)
+
+    # Create legend for shaded regions
+    orange_patch = mpatches.Patch(
+        color="orange", alpha=0.3, label="Crewed Mission Duration"
+    )
+    plt.legend(handles=[orange_patch], loc="upper right")
+
+    plt.show()
