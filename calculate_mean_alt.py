@@ -1,4 +1,7 @@
 import math
+import matplotlib
+
+matplotlib.use("MacOSX")  # Use MacOSX backend for better performance on Mac
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -156,28 +159,38 @@ crewed_missions = [
 """ Plot mean ISS altitude over 2025 with crewed mission events. Show range of events as shaded region."""
 
 
-def plot(df: pd.DataFrame):
-    fig, ax = plt.subplots(figsize=(12, 6))
-    ax.plot(
-        df["day_of_year"],
-        df["mean_altitude"],
-        label="Mean ISS Altitude (km)",
-        color="blue",
-    )
-    ax.set_xlabel("Day of Year (2025)")
-    ax.set_ylabel("Mean Altitude (km)")
-    ax.set_title("Mean ISS Altitude in 2025 with Crewed Mission Events")
-    ax.grid()
+fig, ax = plt.subplots(figsize=(12, 6))
+plot = ax.plot(
+    day_of_year,
+    mean_iss_alt,
+    label="Mean ISS Altitude (km)",
+    color="blue",
+)
+ax.set_xlabel("Day of Year (2025)")
+ax.set_ylabel("Mean Altitude (km)")
+ax.set_title("Mean ISS Altitude in 2025 with Crewed Mission Events")
+ax.grid()
 
-    # Add shaded regions for crewed missions
-    for arrive, depart in crewed_missions:
-        if arrive < depart:  # Only plot if there's a valid range
-            ax.axvspan(arrive, depart, color="orange", alpha=0.3)
+# Add shaded regions for crewed missions
+for arrive, depart in crewed_missions:
+    if arrive < depart:  # Only plot if there's a valid range
+        ax.axvspan(arrive, depart, color="orange", alpha=0.3)
 
-    # Create legend for shaded regions
-    orange_patch = mpatches.Patch(
-        color="orange", alpha=0.3, label="Crewed Mission Duration"
-    )
-    plt.legend(handles=[orange_patch], loc="upper right")
+# Create legend for shaded regions
+orange_patch = mpatches.Patch(
+    color="orange", alpha=0.3, label="Crewed Mission Duration"
+)
+plt.legend(handles=[orange_patch], loc="upper right")
+plt.plot(
+    plot[0].get_xdata(),
+    plot[0].get_ydata(),
+    color="blue",
+    label="Mean ISS Altitude (km)",
+)
+plt.show()
 
-    plt.show()
+
+# x = [1, 2, 3]
+# y = [2, 3, 4]
+# plt.plot(x, y)
+# plt.show()
