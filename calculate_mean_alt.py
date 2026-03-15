@@ -2,11 +2,11 @@ import math
 import matplotlib
 
 matplotlib.use("MacOSX")  # Use MacOSX backend for better performance on Mac
-import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.patches as mpatches
-from datetime import date
+from datetime import date, datetime, timedelta
+from matplotlib.lines import Line2D
 
 # Earth constants
 mu = 398600  # km³/s²  (Earth's gravitational parameter)
@@ -58,13 +58,6 @@ for year, doy, ecc, mm in tles:
     perigees.append(p)
     apogees.append(a)
 
-# print(f"TLE count : {len(tles)}")
-# print(f"Mean perigee altitude : {sum(perigees)/len(perigees):.2f} km")
-# print(f"Mean apogee altitude  : {sum(apogees)/len(apogees):.2f} km")
-# print(f"Min perigee : {min(perigees):.2f} km")
-# print(f"Max apogee  : {max(apogees):.2f} km")
-# print(perigees)
-# print(apogees)
 day_of_year = []
 for j in range(len(tles)):
     day_of_year.append(tles[j][1])
@@ -77,20 +70,20 @@ for k in range(len(tles)):
 crew_events_2025 = [
     # Space X Crew-9
     {
-        "spacecraft": "Crew-9 (Dragon Freedom)",
+        "spacecraft": "SpaceX Crew-9 (Dragon Freedom)",
         "event": "depart",
         "date": date(2025, 3, 18),
         "doy": 77,
     },
     # Space X Crew-10
     {
-        "spacecraft": "Crew-10 (Dragon Endurance)",
+        "spacecraft": "SpaceX Crew-10 (Dragon Endurance)",
         "event": "arrive",
         "date": date(2025, 3, 15),
         "doy": 74,
     },
     {
-        "spacecraft": "Crew-10 (Dragon Endurance)",
+        "spacecraft": "SpaceX Crew-10 (Dragon Endurance)",
         "event": "depart",
         "date": date(2025, 8, 8),
         "doy": 220,
@@ -117,20 +110,20 @@ crew_events_2025 = [
     },
     # Axiom Space Mission 4
     {
-        "spacecraft": "Ax-4 (Dragon)",
+        "spacecraft": "Axiom-4 (Dragon)",
         "event": "arrive",
         "date": date(2025, 6, 26),
         "doy": 177,
     },
     {
-        "spacecraft": "Ax-4 (Dragon)",
+        "spacecraft": "Axiom-4 (Dragon)",
         "event": "depart",
         "date": date(2025, 7, 14),
         "doy": 195,
     },
     # Space X Crew-11
     {
-        "spacecraft": "Crew-11 (Dragon Endeavour)",
+        "spacecraft": "SpaceX Crew-11 (Dragon Endeavour)",
         "event": "arrive",
         "date": date(2025, 8, 2),
         "doy": 214,
@@ -144,53 +137,201 @@ crew_events_2025 = [
     },
 ]
 
-# Get data from dictionary into format of [dock_doy, undock_doy] pairs for each mission. If no dock or undock event, use 0 (docked in 2024) or 366 (undock planned in 2026) as placeholder. 366 to show nicer on graph. Dictionary format better for adding future events if we wwant to expand.
+# Get data from dictionary into format of [dock_doy, undock_doy] pairs for each mission.
+# If no dock or undock event, use 0 (docked in 2024) or 366 (undock planned in 2026) as placeholder.
 missions = {}
-for e in crew_events_2025:
-    name = e["spacecraft"]
+for o in crew_events_2025:
+    name = o["spacecraft"]
     if name not in missions:
         missions[name] = {}
-    missions[name][e["event"]] = e["doy"]
+    missions[name][o["event"]] = o["doy"]
 
 crewed_missions = [
     [events.get("arrive", 0), events.get("depart", 366)] for events in missions.values()
 ]
 
-""" Plot mean ISS altitude over 2025 with crewed mission events. Show range of events as shaded region."""
+""" Plot mean ISS altitude over 2025 with crewed mission events."""
 
 
-fig, ax = plt.subplots(figsize=(12, 6))
-plot = ax.plot(
-    day_of_year,
-    mean_iss_alt,
-    label="Mean ISS Altitude (km)",
-    color="blue",
-)
-ax.set_xlabel("Day of Year (2025)")
-ax.set_ylabel("Mean Altitude (km)")
-ax.set_title("Mean ISS Altitude in 2025 with Crewed Mission Events")
-ax.grid()
+def plot_iss_chart():
+    BG = "#FAF9F6"
+    base = datetime(2025, 1, 1)
+    dates = [base + timedelta(days=doy - 1) for doy in day_of_year]
 
-# Add shaded regions for crewed missions
-for arrive, depart in crewed_missions:
-    if arrive < depart:  # Only plot if there's a valid range
-        ax.axvspan(arrive, depart, color="orange", alpha=0.3)
+    # Detect reboost peaks: large positive jumps in altitude
+    reboost_peaks = [
+        u
+        for u in range(1, len(mean_iss_alt) - 1)
+        if mean_iss_alt[u] - mean_iss_alt[u - 1] > 0.5
+        and mean_iss_alt[u] >= mean_iss_alt[u + 1]
+    ]
 
-# Create legend for shaded regions
-orange_patch = mpatches.Patch(
-    color="orange", alpha=0.3, label="Crewed Mission Duration"
-)
-plt.legend(handles=[orange_patch], loc="upper right")
-plt.plot(
-    plot[0].get_xdata(),
-    plot[0].get_ydata(),
-    color="blue",
-    label="Mean ISS Altitude (km)",
-)
-plt.show()
+    fig, ax = plt.subplots(figsize=(16, 7))
+    fig.patch.set_facecolor(BG)
+    ax.set_facecolor(BG)
+
+    # Reboost vertical bands (+-5 data points around each peak)
+    for idx in reboost_peaks:
+        band_start = dates[max(0, idx - 5)]
+        band_end = dates[min(len(dates) - 1, idx + 5)]
+        ax.axvspan(band_start, band_end, color="#ffd8b1", alpha=0.85, zorder=1)
+
+    # Altitude line
+    ax.plot(
+        dates,
+        mean_iss_alt,
+        color="#FF0000",
+        linewidth=2.3,
+        label="Mean altitude",
+        zorder=4,
+    )
+
+    # Upward arrows at reboost peaks
+    for idx in reboost_peaks:
+        ax.annotate(
+            "",
+            xy=(dates[idx], mean_iss_alt[idx]),
+            xytext=(dates[idx], mean_iss_alt[idx] - 0.8),
+            arrowprops=dict(arrowstyle="->", color="black", lw=1.5),
+            zorder=5,
+        )
+
+    # Grid
+    ax.grid(True, color="gray", alpha=0.5, linestyle="-", zorder=0)
+
+    # --- Mission bars ---
+    COLORS = {
+        "dragon": "#005EFF",
+        "soyuz": "#0040C0",
+        "other": "#55BBAA",
+    }
+
+    def bar_color(name):
+        n = name.lower()
+        if "soyuz" in n:
+            return COLORS["soyuz"]
+        if "dragon" in n or "crew" in n or "ax-4" in n:
+            return COLORS["dragon"]
+        return COLORS["other"]
+
+    # Greedy row assignment to avoid bar overlap
+    mission_list = list(missions.items())
+    row_ends = []
+    row_of = []
+    for name, events in mission_list:
+        arrive = events.get("arrive", 0)
+        assigned = -1
+        for r, end in enumerate(row_ends):
+            if arrive >= end:
+                row_ends[r] = events.get("depart", 366)
+                assigned = r
+                break
+        if assigned == -1:
+            row_ends.append(events.get("depart", 366))
+            assigned = len(row_ends) - 1
+        row_of.append(assigned)
+
+    n_rows = len(row_ends)
+    row_h = 0.22
+    row_gap = 0.05
+    data_min = min(mean_iss_alt)
+    bar_top = data_min - 0.4  # small gap below the data line
+
+    for i, (name, events) in enumerate(mission_list):
+        arrive = events.get("arrive", 0)
+        depart = events.get("depart", 366)
+        row = row_of[i]
+
+        start_d = (
+            datetime(2025, 1, 1) if arrive <= 1 else base + timedelta(days=arrive - 1)
+        )
+        end_d = (
+            datetime(2025, 12, 31)
+            if depart >= 365
+            else base + timedelta(days=depart - 1)
+        )
+
+        y0 = bar_top - (n_rows - 1 - row) * (row_h + row_gap)
+        color = bar_color(name)
+        width = mdates.date2num(end_d) - mdates.date2num(start_d)
+
+        ax.broken_barh(
+            [(mdates.date2num(start_d), width)],
+            (y0, row_h),
+            facecolors=color,
+            alpha=0.85,
+            zorder=3,
+        )
+
+        # Strip parenthetical sub-name for a cleaner label
+        label = name.split(" (")[0]
+        mid = mdates.num2date((mdates.date2num(start_d) + mdates.date2num(end_d)) / 2)
+        ax.text(
+            mid,
+            y0 + row_h / 2,
+            label,
+            ha="center",
+            va="center",
+            fontsize=7.5,
+            color="white",
+            zorder=5,
+        )
+
+    # Y limits to show bars below data
+    total_bar_h = n_rows * (row_h + row_gap)
+    ax.set_ylim(bar_top - total_bar_h - 0.3, max(mean_iss_alt) + 1.5)
+
+    # X axis: month labels across 2025
+    ax.set_xlim(datetime(2025, 1, 1), datetime(2025, 12, 31))
+    ax.xaxis.set_major_locator(mdates.MonthLocator())
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+
+    # Styling
+    for spine in ax.spines.values():
+        spine.set_color("#000000")
+    ax.tick_params(colors="black", labelsize=9)
+    ax.set_xlabel(
+        "2025",
+        color="#000000",
+        labelpad=8,
+        fontweight="bold",
+        fontname="helvetica",
+    )
+    ax.set_ylabel(
+        "Mean Altitude (km)",
+        color="#000000",
+        labelpad=8,
+        fontweight="bold",
+        fontname="helvetica",
+    )
+    ax.set_title(
+        "International Space Station — Mean Altitude & Crewed Missions in 2025",
+        color="black",
+        fontsize=13,
+        pad=12,
+        fontweight="bold",
+        fontname="helvetica",
+    )
+
+    # Legend
+    legend_handles = [
+        Line2D([0], [0], color="#FF0000", linewidth=3, label="Mean altitude"),
+        mpatches.Patch(
+            facecolor="#ffd8b1", alpha=0.9, edgecolor="gray", label="Reboost event"
+        ),
+    ]
+    ax.legend(
+        handles=legend_handles,
+        loc="upper right",
+        facecolor="#2a2a4e",
+        edgecolor="#000000",
+        labelcolor="white",
+        framealpha=0.8,
+    )
+
+    plt.tight_layout()
+    plt.savefig("iss_plot_2025.png", dpi=150, bbox_inches="tight", facecolor=BG)
+    plt.show()
 
 
-# x = [1, 2, 3]
-# y = [2, 3, 4]
-# plt.plot(x, y)
-# plt.show()
+plot_iss_chart()
