@@ -1,8 +1,12 @@
 import math
+import pandas as pd
+from datetime import date
 
 # Earth constants
 mu = 398600  # km³/s²  (Earth's gravitational parameter)
 r_earth = 6378  # km      (Earth's equatorial radius)
+
+"""Translate TLE data into cleaner format. Pluck epoch, year, day of year, eccentricity, and mean motion. Then calculate perigee and apogee altitudes from eccentricity and mean motion."""
 
 
 # Claude's addition - couldnt figure out how to read the TLE data
@@ -26,6 +30,9 @@ def parse_tles(filepath):
 
         tles.append((year, day_of_year, eccentricity, mean_motion))
     return tles
+
+
+"""Calculate the perigee and apogee altitudes given revs per day and eccentricity"""
 
 
 def perigee_apogee(eccentricity, mean_motion_rev_per_day):
@@ -60,4 +67,90 @@ mean_iss_alt = []
 for k in range(len(tles)):
     mean_iss_alt.append((perigees[k] + apogees[k]) / 2)
 
-print(len(day_of_year) == len(mean_iss_alt))
+# print(len(day_of_year) == len(mean_iss_alt))
+""" Collate data of crewed missions to ISS in 2025 include docking and undocking events."""
+crew_events_2025 = [
+    # Space X Crew-9
+    {
+        "spacecraft": "Crew-9 (Dragon Freedom)",
+        "event": "depart",
+        "date": date(2025, 3, 18),
+        "doy": 77,
+    },
+    # Space X Crew-10
+    {
+        "spacecraft": "Crew-10 (Dragon Endurance)",
+        "event": "arrive",
+        "date": date(2025, 3, 15),
+        "doy": 74,
+    },
+    {
+        "spacecraft": "Crew-10 (Dragon Endurance)",
+        "event": "depart",
+        "date": date(2025, 8, 8),
+        "doy": 220,
+    },
+    # Soyuz MS-26
+    {
+        "spacecraft": "Soyuz MS-26",
+        "event": "depart",
+        "date": date(2025, 4, 19),
+        "doy": 109,
+    },
+    # Soyuz MS-27
+    {
+        "spacecraft": "Soyuz MS-27",
+        "event": "arrive",
+        "date": date(2025, 4, 8),
+        "doy": 98,
+    },
+    {
+        "spacecraft": "Soyuz MS-27",
+        "event": "depart",
+        "date": date(2025, 12, 8),
+        "doy": 342,
+    },
+    # Axiom Space Mission 4
+    {
+        "spacecraft": "Ax-4 (Dragon)",
+        "event": "arrive",
+        "date": date(2025, 6, 26),
+        "doy": 177,
+    },
+    {
+        "spacecraft": "Ax-4 (Dragon)",
+        "event": "depart",
+        "date": date(2025, 7, 14),
+        "doy": 195,
+    },
+    # Space X Crew-11
+    {
+        "spacecraft": "Crew-11 (Dragon Endeavour)",
+        "event": "arrive",
+        "date": date(2025, 8, 2),
+        "doy": 214,
+    },
+    # Soyuz MS-28
+    {
+        "spacecraft": "Soyuz MS-28",
+        "event": "arrive",
+        "date": date(2025, 11, 27),
+        "doy": 331,
+    },
+]
+
+missions = {}
+for e in crew_events_2025:
+    name = e["spacecraft"]
+    if name not in missions:
+        missions[name] = {}
+    missions[name][e["event"]] = e["doy"]
+
+# Build [dock_doy, undock_doy] pairs
+# [0, undock] if docked before 2025, [dock, 365] if undocking after 2025
+crewed_missions = [
+    [events.get("arrival", 0), events.get("depart", 365)]
+    for events in missions.values()
+]
+
+print(crewed_missions)
