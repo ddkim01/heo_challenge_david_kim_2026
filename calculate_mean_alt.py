@@ -5,6 +5,7 @@ mu = 398600  # km³/s²  (Earth's gravitational parameter)
 r_earth = 6378  # km      (Earth's equatorial radius)
 
 
+# Claude's addition - couldnt figure out how to read the TLE data
 def parse_tles(filepath):
     with open(filepath) as f:
         lines = [l.strip() for l in f if l.strip()]
@@ -13,7 +14,7 @@ def parse_tles(filepath):
     for i in range(0, len(lines) - 1, 2):
         line1, line2 = lines[i], lines[i + 1]
 
-        # From Line 1: epoch
+        # Learned that epoch characters are always indexed 18 to 32 in TLE data
         epoch_str = line1[18:32]
         year = int(epoch_str[:2])
         year += 2000 if year < 57 else 1900
@@ -51,4 +52,12 @@ for year, doy, ecc, mm in tles:
 # print(f"Max apogee  : {max(apogees):.2f} km")
 # print(perigees)
 # print(apogees)
-print(tles[1])
+day_of_year = []
+for j in range(len(tles)):
+    day_of_year.append(tles[j][1])
+
+mean_iss_alt = []
+for k in range(len(tles)):
+    mean_iss_alt.append((perigees[k] + apogees[k]) / 2)
+
+print(len(day_of_year) == len(mean_iss_alt))
