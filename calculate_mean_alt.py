@@ -182,7 +182,7 @@ def plot_iss_chart():
     ax.plot(
         dates,
         mean_iss_alt,
-        color="#FF0000",
+        color="#FF0800",
         linewidth=2.3,
         label="Mean altitude",
         zorder=4,
@@ -194,18 +194,17 @@ def plot_iss_chart():
             "",
             xy=(dates[idx], mean_iss_alt[idx]),
             xytext=(dates[idx], mean_iss_alt[idx] - 0.8),
-            arrowprops=dict(arrowstyle="->", color="black", lw=1.5),
+            arrowprops=dict(arrowstyle="->", color="#000000", lw=2.5),
             zorder=5,
         )
 
     # Grid
-    ax.grid(True, color="gray", alpha=0.5, linestyle="-", zorder=0)
-
+    ax.yaxis.grid(True, color="gray", alpha=0.4, linestyle="-", zorder=0)
+    ax.xaxis.grid(False)
     # --- Mission bars ---
     COLORS = {
         "dragon": "#005EFF",
-        "soyuz": "#0040C0",
-        "other": "#55BBAA",
+        "soyuz": "#757575",
     }
 
     def bar_color(name):
@@ -276,6 +275,7 @@ def plot_iss_chart():
             va="center",
             fontsize=7.5,
             color="white",
+            fontname="Arial",
             zorder=5,
         )
 
@@ -289,8 +289,12 @@ def plot_iss_chart():
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
 
     # Styling
-    for spine in ax.spines.values():
-        spine.set_color("#000000")
+    # for spine in ax.spines.values():
+    #     spine.set_color("#000000")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+    ax.spines["bottom"].set_color("#000000")
     ax.tick_params(colors="black", labelsize=9)
     ax.set_xlabel(
         "2025",
@@ -298,6 +302,7 @@ def plot_iss_chart():
         labelpad=8,
         fontweight="bold",
         fontname="Arial",
+        fontsize=13,
     )
     ax.set_ylabel(
         "Mean Altitude (km)",
@@ -305,26 +310,32 @@ def plot_iss_chart():
         labelpad=8,
         fontweight="bold",
         fontname="Arial",
+        fontsize=13,
     )
     ax.set_title(
-        "International Space Station — Mean Altitude & Crewed Missions in 2025",
+        "International Space Station (ZARYA) — Average Altitude & Crewed Missions in 2025",
         color="black",
-        fontsize=13,
+        fontsize=16,
         pad=12,
         fontweight="bold",
         fontname="Arial",
     )
-    def make_legend_arrow(legend, orig_handle, xdescent, ydescent, width, height, fontsize):
-        p = mpatches.FancyArrow(0, 0.5*height, width, 0, length_includes_head=True, head_width=0.75*height )
-        return p
-    arrow = plt.arrow(0, 0, 0.5, 0.6, 'dummy', label="Reboost event",)
-    legend_arrow = [arrow], ['My label'], handler_map={mpatches.FancyArrow : HandlerPatch(patch_func=make_legend_arrow)}
     # Legend
     legend_handles = [
         Line2D([0], [0], color="#FF0000", linewidth=3, label="Mean altitude"),
         # mpatches.Patch(
         #     facecolor="#ffd8b1", alpha=0.9, edgecolor="gray", label="Reboost event"),
-        legend_arrow,
+        plt.arrow(
+            0,
+            0,
+            0.1,
+            0.1,
+            label="Reboost event",
+            color="#000000",
+            lw=0.5,
+            head_width=0.3,
+            head_length=0.3,
+        ),
     ]
     ax.legend(
         handles=legend_handles,
