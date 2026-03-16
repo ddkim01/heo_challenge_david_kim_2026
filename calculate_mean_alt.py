@@ -1,12 +1,14 @@
 import math
 import matplotlib
-
-matplotlib.use("MacOSX")  # Use MacOSX backend for better performance on Mac
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.patches as mpatches
 from datetime import date, datetime, timedelta
 from matplotlib.lines import Line2D
+from matplotlib.legend_handler import HandlerPatch
+
+matplotlib.use("MacOSX")  # Use MacOSX backend for better performance on Mac
+
 
 # Earth constants
 mu = 398600  # km³/s²  (Earth's gravitational parameter)
@@ -171,10 +173,10 @@ def plot_iss_chart():
     ax.set_facecolor(BG)
 
     # Reboost vertical bands (+-5 data points around each peak)
-    for idx in reboost_peaks:
-        band_start = dates[max(0, idx - 5)]
-        band_end = dates[min(len(dates) - 1, idx + 5)]
-        ax.axvspan(band_start, band_end, color="#ffd8b1", alpha=0.85, zorder=1)
+    # for idx in reboost_peaks:
+    #     band_start = dates[max(0, idx - 5)]
+    #     band_end = dates[min(len(dates) - 1, idx + 5)]
+    #     ax.axvspan(band_start, band_end, color="#ffd8b1", alpha=0.85, zorder=1)
 
     # Altitude line
     ax.plot(
@@ -295,14 +297,14 @@ def plot_iss_chart():
         color="#000000",
         labelpad=8,
         fontweight="bold",
-        fontname="helvetica",
+        fontname="Arial",
     )
     ax.set_ylabel(
         "Mean Altitude (km)",
         color="#000000",
         labelpad=8,
         fontweight="bold",
-        fontname="helvetica",
+        fontname="Arial",
     )
     ax.set_title(
         "International Space Station — Mean Altitude & Crewed Missions in 2025",
@@ -310,15 +312,19 @@ def plot_iss_chart():
         fontsize=13,
         pad=12,
         fontweight="bold",
-        fontname="helvetica",
+        fontname="Arial",
     )
-
+    def make_legend_arrow(legend, orig_handle, xdescent, ydescent, width, height, fontsize):
+        p = mpatches.FancyArrow(0, 0.5*height, width, 0, length_includes_head=True, head_width=0.75*height )
+        return p
+    arrow = plt.arrow(0, 0, 0.5, 0.6, 'dummy', label="Reboost event",)
+    legend_arrow = [arrow], ['My label'], handler_map={mpatches.FancyArrow : HandlerPatch(patch_func=make_legend_arrow)}
     # Legend
     legend_handles = [
         Line2D([0], [0], color="#FF0000", linewidth=3, label="Mean altitude"),
-        mpatches.Patch(
-            facecolor="#ffd8b1", alpha=0.9, edgecolor="gray", label="Reboost event"
-        ),
+        # mpatches.Patch(
+        #     facecolor="#ffd8b1", alpha=0.9, edgecolor="gray", label="Reboost event"),
+        legend_arrow,
     ]
     ax.legend(
         handles=legend_handles,
