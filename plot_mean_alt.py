@@ -183,7 +183,7 @@ def plot_iss_chart():
         dates,
         mean_iss_alt,
         color="#FF0800",
-        linewidth=2.3,
+        linewidth=3,
         label="Mean altitude",
         zorder=4,
     )
@@ -194,7 +194,7 @@ def plot_iss_chart():
             "",
             xy=(dates[idx], mean_iss_alt[idx]),
             xytext=(dates[idx], mean_iss_alt[idx] - 0.8),
-            arrowprops=dict(arrowstyle="->", color="#000000", lw=2.5),
+            arrowprops=dict(arrowstyle="->", color="#000000", lw=3),
             zorder=5,
         )
 
@@ -203,8 +203,8 @@ def plot_iss_chart():
     ax.xaxis.grid(False)
     # --- Mission bars ---
     COLORS = {
-        "dragon": "#005EFF",
-        "soyuz": "#757575",
+        "dragon": "#2575FF",
+        "soyuz": "#FF8310",
     }
 
     def bar_color(name):
@@ -231,9 +231,9 @@ def plot_iss_chart():
             row_ends.append(events.get("depart", 366))
             assigned = len(row_ends) - 1
         row_of.append(assigned)
-
+    # Control the thickness/height of bars and spacing
     n_rows = len(row_ends)
-    row_h = 0.22
+    row_h = 0.30
     row_gap = 0.05
     data_min = min(mean_iss_alt)
     bar_top = data_min - 0.4  # small gap below the data line
@@ -273,10 +273,10 @@ def plot_iss_chart():
             label,
             ha="center",
             va="center",
-            fontsize=7.5,
+            fontsize=10.5,
             color="white",
             fontname="Arial",
-            zorder=5,
+            zorder=6,
         )
 
     # Y limits to show bars below data
@@ -295,14 +295,14 @@ def plot_iss_chart():
     ax.spines["right"].set_visible(False)
     ax.spines["left"].set_visible(False)
     ax.spines["bottom"].set_color("#000000")
-    ax.tick_params(colors="black", labelsize=9)
+    ax.tick_params(colors="black", labelsize=13)
     ax.set_xlabel(
         "2025",
         color="#000000",
         labelpad=8,
         fontweight="bold",
         fontname="Arial",
-        fontsize=13,
+        fontsize=20,
     )
     ax.set_ylabel(
         "Mean Altitude (km)",
@@ -310,12 +310,12 @@ def plot_iss_chart():
         labelpad=8,
         fontweight="bold",
         fontname="Arial",
-        fontsize=13,
+        fontsize=20,
     )
     ax.set_title(
         "International Space Station (ZARYA) — Average Altitude & Crewed Missions in 2025",
         color="black",
-        fontsize=16,
+        fontsize=26,
         pad=12,
         fontweight="bold",
         fontname="Arial",
