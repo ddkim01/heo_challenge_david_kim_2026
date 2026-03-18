@@ -274,7 +274,7 @@ def plot_iss_chart():
             ha="center",
             va="center",
             fontsize=12.5,
-            color="white",
+            color="black",
             fontname="Arial",
             zorder=6,
         )
