@@ -233,7 +233,7 @@ def plot_iss_chart():
         row_of.append(assigned)
     # Control the thickness/height of bars and spacing
     n_rows = len(row_ends)
-    row_h = 0.30
+    row_h = 0.32
     row_gap = 0.05
     data_min = min(mean_iss_alt)
     bar_top = data_min - 0.4  # small gap below the data line
@@ -273,7 +273,7 @@ def plot_iss_chart():
             label,
             ha="center",
             va="center",
-            fontsize=10.5,
+            fontsize=12.5,
             color="white",
             fontname="Arial",
             zorder=6,
@@ -295,14 +295,14 @@ def plot_iss_chart():
     ax.spines["right"].set_visible(False)
     ax.spines["left"].set_visible(False)
     ax.spines["bottom"].set_color("#000000")
-    ax.tick_params(colors="black", labelsize=13)
+    ax.tick_params(colors="black", labelsize=20)
     ax.set_xlabel(
         "2025",
         color="#000000",
         labelpad=8,
         fontweight="bold",
         fontname="Arial",
-        fontsize=20,
+        fontsize=26,
     )
     ax.set_ylabel(
         "Mean Altitude (km)",
@@ -310,12 +310,12 @@ def plot_iss_chart():
         labelpad=8,
         fontweight="bold",
         fontname="Arial",
-        fontsize=20,
+        fontsize=26,
     )
     ax.set_title(
         "International Space Station (ZARYA) — Average Altitude & Crewed Missions in 2025",
         color="black",
-        fontsize=26,
+        fontsize=30,
         pad=12,
         fontweight="bold",
         fontname="Arial",
@@ -344,6 +344,7 @@ def plot_iss_chart():
         edgecolor="#000000",
         labelcolor="white",
         framealpha=0.8,
+        fontsize=16,
     )
 
     plt.tight_layout()
